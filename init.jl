@@ -9,9 +9,8 @@ Pkg.instantiate()
 # Precompile everyting
 Pkg.API.precompile()
 
-# Load packages
-using Revise
-using JuMP
+# Constant values which may be useful
+const ROOT_DIR = @__DIR__
 
 # Include other scripts
 for (root, subdirs, files) in walkdir(abspath(@__DIR__, "functions"))
@@ -20,8 +19,5 @@ for (root, subdirs, files) in walkdir(abspath(@__DIR__, "functions"))
     end
 end
 
-# Constant values which may be useful
-const ROOT_DIR = @__DIR__
-
 # Other stuff
-ENV["JULIA_DEBUG"] = "all" # Shows debug messages in all packages
+ENV["JULIA_DEBUG"] = "Main" # Show debug messages for packages

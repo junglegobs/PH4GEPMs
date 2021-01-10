@@ -15,8 +15,6 @@ sys = System(
     branches5(nodes_5),
 )
 
-
-
 loads = collect(get_components(PowerLoad, sys))
 for (l, ts) in zip(loads, load_timeseries_DA[2])
     add_time_series!(

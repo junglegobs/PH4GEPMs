@@ -1,5 +1,5 @@
 # Fill me with frequently used functions
-using CSV, Dates, DataFrames, PowerSystems
+using CSV, Dates, DataFrames, PowerSystems, TimeSeries, JuMP, Cbc, Ipopt
 
 """
 	mkrootdirs(dir::String)
@@ -45,7 +45,7 @@ function process_time_series()
             delim=";", decimal=','
         )
         name_pairs = [Symbol(i) => Symbol("$(ts_name)_$i") for i in 1:35]
-        rename!(df, name_pairs)
+        DataFrames.rename!(df, name_pairs)
         ts_dict[ts_name] = hcat(
             ts_dict[ts_name], df[:, last.(name_pairs)] ./ norm_factors[ts_name]
         )
@@ -130,4 +130,130 @@ function build_system()
     )
 
     return system
+end
+
+function build_GEP(system::System, years=[1])
+    m = Model(Cbc.Optimizer)
+    m.ext[:variables] = Dict{Symbol,Any}()
+    m.ext[:constraints] = Dict{Symbol,Any}()
+
+    G = get_generator_names(system)
+    Y = years
+    T = get_set_of_time_periods()
+
+    idxLoad = [Symbol("Load_$i") for i in Y]
+    load = get_time_series_array(
+        SingleTimeSeries, get_component(StaticLoad, system, "Load"), "Load"
+    )[idxLoad]
+
+    # Create variables
+    q = m.ext[:variables][:q] = @variable(m, 
+        q[g in G, y in Y, t in T] >= 0
+    )
+    k = m.ext[:variables][:k] = @variable(m, 
+        k[g in G] >= 0
+    )
+    ls = m.ext[:variables][:ls] = @variable(m, 
+        ls[y in Y, t in T] >= 0
+    )
+
+    # Power balance
+    power_balance = m.ext[:constraints][:power_balance] = @constraint(m, 
+        [y in Y, t in T],
+        sum(q[g,y,t] for g in G) 
+        == 
+        first(values(load[t][Symbol("Load_$y")])) - ls[y,t]
+    )
+
+    # Limit generation
+    limit_gen = m.ext[:constraints][:limit_gen] = @constraint(m,
+        [g in G, y in Y, t in T],
+        q[g,y,t] <= k[g]
+    )
+
+    # Objective
+    @objective(m, Min, 
+        + sum(q[get_name(g),y,t] * get_cost(get_variable(get_operation_cost(g)))
+            for g in get_components(Generator, system), y in Y, t in T
+        ) / length(Y)
+        + sum(ls[y,t] * VOLL for y in Y, t in T) / length(Y)
+        + sum(k[get_name(g)] * get_fixed(get_operation_cost(g))
+            for g in get_components(Generator, system)
+        )
+    )
+
+    return m
+end
+
+function build_GEP_sub_problem(
+        scenario_id::PH.ScenarioID, 
+        system::System,
+        years,
+    )
+    m = Model(Ipopt.Optimizer)
+    JuMP.set_optimizer_attribute(m, "print_level", 0)
+    m.ext[:variables] = Dict{Symbol,Any}()
+    m.ext[:constraints] = Dict{Symbol,Any}()
+
+    T = get_set_of_time_periods()
+    G = get_generator_names(system)
+
+    yidx = years[scenario_id.value+1]
+    load = get_time_series_array(
+        SingleTimeSeries, get_component(StaticLoad, system, "Load"), "Load"
+    )[Symbol("Load_$(yidx)")]
+
+    # Create variables
+    q = m.ext[:variables][:q] = @variable(m, 
+        q[g in G, t in T] >= 0
+    )
+    ls = m.ext[:variables][:ls] = @variable(m, 
+        ls[y in Y, t in T] >= 0
+    )
+    k = m.ext[:variables][:k] = @variable(m, 
+        k[g in G] >= 0
+    )
+    dispatch = vcat(q.data[:], ls.data[:])
+    investments = k.data[:]
+
+    # Power balance
+    power_balance = m.ext[:constraints][:power_balance] = @constraint(m, 
+        [t in T],
+        sum(q[g,t] for g in G) == first(values(load[t])) - ls[t]
+    )
+
+    # Limit generation
+    limit_gen = m.ext[:constraints][:limit_gen] = @constraint(m,
+        [g in G, t in T],
+        q[g,t] <= k[g]
+    )
+
+    # Objective
+    @objective(m, Min, 
+        + sum(q[get_name(g),t] * get_cost(get_variable(get_operation_cost(g)))
+            for g in get_components(Generator, system), t in T
+        )
+        + sum(ls[t] * VOLL for t in T)
+        + sum(k[get_name(g)] * get_fixed(get_operation_cost(g))
+            for g in get_components(Generator, system)
+        )
+    )
+
+    vdict = Dict{PH.StageID, Vector{JuMP.VariableRef}}(
+        PH.stid(1) => investments,
+        PH.stid(2) => dispatch
+    )
+
+    return JuMPSubproblem(m, scenario_id, vdict)
+end
+
+function build_scenario_tree(
+        num_years::Int
+    )
+    probs = [1 / num_years for i in 1:num_years]
+    tree = PH.ScenarioTree()
+    for y in 1:num_years
+        PH.add_leaf(tree, tree.root, probs[y])
+    end
+    return tree
 end

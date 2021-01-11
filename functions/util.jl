@@ -192,6 +192,7 @@ function build_GEP_sub_problem(
     )
     m = Model(Ipopt.Optimizer)
     JuMP.set_optimizer_attribute(m, "print_level", 0)
+    JuMP.set_optimizer_attribute(model, "tol", 1e-6)
     m.ext[:variables] = Dict{Symbol,Any}()
     m.ext[:constraints] = Dict{Symbol,Any}()
 

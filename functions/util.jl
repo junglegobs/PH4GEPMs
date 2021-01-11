@@ -208,7 +208,7 @@ function build_GEP_sub_problem(
         q[g in G, t in T] >= 0
     )
     ls = m.ext[:variables][:ls] = @variable(m, 
-        ls[y in Y, t in T] >= 0
+        ls[t in T] >= 0
     )
     k = m.ext[:variables][:k] = @variable(m, 
         k[g in G] >= 0

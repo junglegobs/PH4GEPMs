@@ -1,5 +1,5 @@
 # Fill me with frequently used functions
-using CSV, Dates, DataFrames, PowerSystems, TimeSeries, JuMP, Cbc, Ipopt
+using CSV, Dates, DataFrames, PowerSystems, TimeSeries, JuMP, Cbc, Ipopt, UnPack
 
 """
 	mkrootdirs(dir::String)
@@ -132,8 +132,14 @@ function build_system()
     return system
 end
 
-function build_GEP(system::System, years=[1])
-    m = Model(Cbc.Optimizer)
+function build_GEP(system::System,
+        opts=Dict(
+            :years => [1],
+            :optimizer => optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0, "tol" => 1e-4)
+        )
+    )
+    @unpack years, optimizer = opts
+    m = Model(optimizer)
     m.ext[:variables] = Dict{Symbol,Any}()
     m.ext[:constraints] = Dict{Symbol,Any}()
 
@@ -188,11 +194,14 @@ end
 function build_GEP_sub_problem(
         scenario_id::PH.ScenarioID, 
         system::System,
-        years,
+        opts=Dict(
+            :years => [1],
+            :optimizer => optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0, "tol" => 1e-4)
+        ),
     )
-    m = Model(Ipopt.Optimizer)
-    JuMP.set_optimizer_attribute(m, "print_level", 0)
-    JuMP.set_optimizer_attribute(model, "tol", 1e-6)
+    @unpack years, optimizer = opts
+    
+    m = Model(optimizer)
     m.ext[:variables] = Dict{Symbol,Any}()
     m.ext[:constraints] = Dict{Symbol,Any}()
 

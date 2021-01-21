@@ -97,7 +97,7 @@ function build_system()
         reactive_power_limits = (min = 0.0, max = 0.00),
         time_limits = nothing,
         ramp_limits = nothing,
-        operation_cost = TwoPartCost(0.112, 46.4), # Variable and fixed costs in M euros and GW(h)
+        operation_cost = ThreePartCost(0.112, 46.4, 0.0, 0.0), # Variable and fixed costs in M euros and GW(h)
         base_power = 0.0,
     )
     Base = ThermalStandard(
@@ -114,7 +114,7 @@ function build_system()
         reactive_power_limits = (min = 0.0, max = 0.00),
         time_limits = nothing,
         ramp_limits = nothing,
-        operation_cost = TwoPartCost(0.054, 82.120), # Variable and fixed costs in M euros and GW(h)
+        operation_cost = ThreePartCost(0.054, 82.120, 0.0, 0.0), # Variable and fixed costs in M euros and GW(h)
         base_power = 0.0,
     )
 
@@ -146,6 +146,7 @@ function build_GEP(system::System,
     G = get_generator_names(system)
     Y = years
     T = get_set_of_time_periods()
+    T2TS = get_mapping_of_time_periods_to_time_steps()
 
     idxLoad = [Symbol("Load_$i") for i in Y]
     load = get_time_series_array(
@@ -168,7 +169,7 @@ function build_GEP(system::System,
         [y in Y, t in T],
         sum(q[g,y,t] for g in G) 
         == 
-        first(values(load[t][Symbol("Load_$y")])) - ls[y,t]
+        first(values(load[T2TS[t]][Symbol("Load_$y")])) - ls[y,t]
     )
 
     # Limit generation
@@ -199,7 +200,7 @@ function build_GEP_sub_problem(
             :optimizer => optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0, "tol" => 1e-4)
         ),
     )
-    @unpack years, optimizer = opts
+    @unpack years, models, optimizer = opts
     
     m = Model(optimizer)
     m.ext[:variables] = Dict{Symbol,Any}()
@@ -225,6 +226,11 @@ function build_GEP_sub_problem(
     )
     dispatch = vcat(q.data[:], ls.data[:])
     investments = k.data[:]
+
+    # Set warm start values for all variables
+    if haskey(models, yidx) && has_values(models[yidx]) 
+        set_start_value.(all_variables(m), value.(all_variables(models[yidx])))
+    end
 
     # Power balance
     power_balance = m.ext[:constraints][:power_balance] = @constraint(m, 
@@ -254,6 +260,10 @@ function build_GEP_sub_problem(
         PH.stid(2) => dispatch
     )
 
+    # Save model to use warm start values later on
+    haskey(models, yidx) && (models[yidx] = nothing) # Clear memory
+    models[yidx] = m
+
     return JuMPSubproblem(m, scenario_id, vdict)
 end
 
@@ -266,4 +276,27 @@ function build_scenario_tree(
         PH.add_leaf(tree, tree.root, probs[y])
     end
     return tree
+end
+
+function get_set_of_time_periods()
+    return 1:length(time_periods)
+end
+
+function get_mapping_of_time_periods_to_time_steps()
+    return time_periods
+end
+
+function get_generator_names(system::System)
+    return get_name.(get_components(Generator, system))
+end
+
+function solve_dummy_problem(optimizer, n)
+    for i = 1:n
+        m = Model(optimizer)
+        @variable(m, x)
+        @constraint(m, x >= -1)
+        @constraint(m, x <= 1)
+        @objective(m, Min, x)
+        return optimize!(m)
+    end
 end

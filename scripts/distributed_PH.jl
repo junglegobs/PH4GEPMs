@@ -1,6 +1,6 @@
 # Setup workers
 using Distributed
-const WORKERS = 15
+const WORKERS = 4
 diff = (nprocs() == nworkers() ? WORKERS : WORKERS - nworkers())
 println("Adding $diff worker processes.")
 Distributed.addprocs(diff)
@@ -8,20 +8,25 @@ Distributed.addprocs(diff)
 # Setup environments for workers
 @everywhere using ProgressiveHedging
 const PH = ProgressiveHedging
-@everywhere using Ipopt
-@everywhere using CSDP
-@everywhere using COSMO
+@everywhere using SCS
+@everywhere using Cbc
 @everywhere using JuMP
 @everywhere include(joinpath(@__DIR__, "..", "functions", "util.jl"))
 @everywhere include(joinpath(@__DIR__, "..", "functions", "sets.jl"))
-using Logging
-logger = configure_logging(console_level = Logging.Error)
+@everywhere using Logging
+@everywhere logger = configure_logging(console_level = Logging.Error)
 
 # Setup system
 opts = Dict(
-    :years => 1:3,
-    :optimizer => optimizer_with_attributes(CSDP.Optimizer, "printlevel" => 0)
-    # optimizer_with_attributes(COSMO.Optimizer, "verbose" => true, "eps_abs" => 1e-1, "max_iter" => 10_000)
+    :years => 1:4,
+    :models => Dict{Int,Model}(),
+    :optimizer => optimizer_with_attributes(COSMO.Optimizer, 
+        "eps_rel" => 1e-3, "verbose_timing" => true, 
+        "rho" => 10.0, "max_iter" => 10_000,
+        "eps_prim_inf" => 1e-3,
+        "eps_dual_inf" => 1e-3,
+        "verbose" => false,
+    )
 )
 system = build_system()
 
@@ -39,7 +44,7 @@ system = build_system()
 t = @elapsed ef_model = PH.solve_extensive(
     build_scenario_tree(length(opts[:years])),
     build_GEP_sub_problem, 
-    ()->CSDP.Optimizer(),
+    ()->Cbc.Optimizer(),
     system, opts,
     opt_args=NamedTuple()
 )

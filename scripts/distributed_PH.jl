@@ -8,6 +8,7 @@ Distributed.addprocs(diff)
 # Setup environments for workers
 @everywhere using ProgressiveHedging
 const PH = ProgressiveHedging
+@everywhere using COSMO
 @everywhere using SCS
 @everywhere using Cbc
 @everywhere using JuMP

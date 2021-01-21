@@ -146,7 +146,7 @@ function build_GEP(system::System,
     G = get_generator_names(system)
     Y = years
     T = get_set_of_time_periods()
-    T2TS = get_mapping_of_time_periods_to_time_steps()
+    T2TS = get_mapping_of_time_periods()
 
     idxLoad = [Symbol("Load_$i") for i in Y]
     load = get_time_series_array(
@@ -279,10 +279,10 @@ function build_scenario_tree(
 end
 
 function get_set_of_time_periods()
-    return 1:length(time_periods)
+    return 1:24
 end
 
-function get_mapping_of_time_periods_to_time_steps()
+function get_mapping_of_time_periods()
     return time_periods
 end
 

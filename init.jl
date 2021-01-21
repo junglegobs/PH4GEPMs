@@ -11,7 +11,7 @@ using Dates
 using ProgressiveHedging
 const PH = ProgressiveHedging
 const ROOT_DIR = @__DIR__
-const time_periods =  DateTime(2018):Hour(1):DateTime(2019)-Hour(1)
+const time_periods = DateTime(2018):Hour(1):DateTime(2019)-Hour(1)
 const VOLL = 10 # Million euros per GWh
 
 # Include other scripts

@@ -1,27 +1,23 @@
 # Setup workers
 using Distributed
-const WORKERS = 15
+const WORKERS = 4
 diff = (nprocs() == nworkers() ? WORKERS : WORKERS - nworkers())
 println("Adding $diff worker processes.")
 Distributed.addprocs(diff)
 
 # Setup environments for workers
-@everywhere using ProgressiveHedging
-const PH = ProgressiveHedging
-@everywhere using Ipopt
-@everywhere using CSDP
-@everywhere using COSMO
-@everywhere using JuMP
+@everywhere using Pkg; Pkg.activate(joinpath(@__DIR__, ".."))
+@everywhere include(joinpath(@__DIR__, "..", "init.jl"))
+@everywhere using ProgressiveHedging, Ipopt, COSMO, JuMP
 @everywhere include(joinpath(@__DIR__, "..", "functions", "util.jl"))
-@everywhere include(joinpath(@__DIR__, "..", "functions", "sets.jl"))
 using Logging
 logger = configure_logging(console_level = Logging.Error)
 
 # Setup system
 opts = Dict(
     :years => 1:3,
-    :optimizer => optimizer_with_attributes(CSDP.Optimizer, "printlevel" => 0)
-    # optimizer_with_attributes(COSMO.Optimizer, "verbose" => true, "eps_abs" => 1e-1, "max_iter" => 10_000)
+    # :optimizer => optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0, "tol" => 1e-2)
+    optimizer_with_attributes(COSMO.Optimizer, "verbose" => true, "eps_abs" => 1e-1, "max_iter" => 10_000)
 )
 system = build_system()
 

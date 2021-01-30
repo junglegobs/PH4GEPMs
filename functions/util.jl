@@ -214,15 +214,10 @@ function build_GEP_sub_problem(
     )[Symbol("Load_$(yidx)")]
 
     # Create variables
-    q = m.ext[:variables][:q] = @variable(m, 
-        q[g in G, t in T] >= 0
-    )
-    ls = m.ext[:variables][:ls] = @variable(m, 
-        ls[t in T] >= 0
-    )
-    k = m.ext[:variables][:k] = @variable(m, 
-        k[g in G] >= 0
-    )
+    q = m.ext[:variables][:q] = @variable(m, [g in G, t in T])
+
+    ls = m.ext[:variables][:ls] = @variable(m, [t in T])
+    k = m.ext[:variables][:k] = @variable(m, [g in G])
     dispatch = vcat(q.data[:], ls.data[:])
     investments = k.data[:]
 
@@ -266,4 +261,20 @@ function build_scenario_tree(
         PH.add_leaf(tree, tree.root, probs[y])
     end
     return tree
+end
+
+function get_set_of_time_periods()
+    return time_periods[1:24]
+end
+
+function get_generator_names(system::System)
+    return get_name.(get_components(Generator, system))
+end
+
+function get_optimizer(;sub_problem=true)
+    if haskey(ENV, "GUROBI_HOME")
+        return Gurobi.Optimizer
+    else
+        return COSMO.Optimizer
+    end
 end

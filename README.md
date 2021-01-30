@@ -15,10 +15,10 @@ Tip: to get to the shell, type `;` in the Julia REPL. Similarly to get to the pa
 ## Distributed optimisations setup
 To run the scripts in a distributed fashion, you need to do the following:
 ```julia
-julia> using Distributed
-julia> @everywhere include("<full_path_to_PH4GEPMs>/init.jl")
-julia> include(joinpath(@__DIR__, "scripts", "distributed_PH.jl"))
+julia> include("<full_path_to_PH4GEPMs>/init.jl")
+julia> include(joinpath(ROOT_DIR, "scripts", "distributed_PH.jl"))
 ```
+Note that `distributed_PH.jl` calls the `init.jl` function each time (TODO: make another init script for distributed jobs).
 
 ## References
 For a reference to progressive hedging, [see here](https://pdfs.semanticscholar.org/f75f/ed76db11997b66093099f1a933e2f59e7306.pdf). For generation expansion planning models, see e.g. [this paper](https://www.mech.kuleuven.be/en/tme/research/energy-systems-integration-modeling/pdf-publications/wp-esim2020-03).

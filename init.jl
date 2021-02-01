@@ -15,6 +15,9 @@ const ROOT_DIR = @__DIR__
 const time_periods =  DateTime(2018):Hour(1):DateTime(2019)-Hour(1)
 const VOLL = 10 # Million euros per GWh
 
+using Gurobi
+const GRB_ENV = Gurobi.Env()
+
 # Include other scripts
 using Revise # So I can do includet
 for (root, subdirs, files) in walkdir(abspath(@__DIR__, "functions"))

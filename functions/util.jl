@@ -221,6 +221,14 @@ function build_GEP_sub_problem(
     dispatch = vcat(q.data[:], ls.data[:])
     investments = k.data[:]
 
+<<<<<<< Updated upstream
+=======
+    # Set warm start values for all variables
+    # if haskey(models, yidx) && has_values(models[yidx]) 
+    #     set_start_value.(all_variables(m), value.(all_variables(models[yidx])))
+    # end
+
+>>>>>>> Stashed changes
     # Power balance
     power_balance = m.ext[:constraints][:power_balance] = @constraint(m, 
         [t in T],
@@ -249,6 +257,13 @@ function build_GEP_sub_problem(
         PH.stid(2) => dispatch
     )
 
+<<<<<<< Updated upstream
+=======
+    # Save model to use warm start values later on
+    # haskey(models, yidx) && (models[yidx] = nothing) # Clear memory
+    # models[yidx] = m
+
+>>>>>>> Stashed changes
     return JuMPSubproblem(m, scenario_id, vdict)
 end
 

@@ -7,7 +7,8 @@ logger = configure_logging(console_level = Logging.Error)
 
 opts = Dict(
     :years => 1:2,
-    :optimizer=>optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0, "tol" => 1e-4)
+    :optimizer=>optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0, "tol" => 1e-4),
+    :models=>Dict{PH.ScenarioID,Model}()
 )
 system = build_system()
 

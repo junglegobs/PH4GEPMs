@@ -1,5 +1,8 @@
 # Fill me with frequently used functions
-using CSV, Dates, DataFrames, PowerSystems, TimeSeries, JuMP, Cbc, Ipopt
+using CSV, Dates, DataFrames, PowerSystems, TimeSeries, JuMP
+using Cbc, Ipopt, ProgressiveHedging, Gurobi, COSMO
+PH = ProgressiveHedging
+ROOT_DIR = abspath(@__DIR__, "..")
 
 """
 	mkrootdirs(dir::String)
@@ -20,7 +23,7 @@ end
 function process_time_series()
     ts_names = ["Load", "Solar", "WindOff", "WindOn"]
     ts_dict = Dict(
-        ts_name => DataFrame(T = time_periods)
+        ts_name => DataFrame(T = get_set_of_time_periods(all=true))
         for ts_name in ts_names
     )
     name_map = Dict(
@@ -176,7 +179,7 @@ function build_GEP(system::System, years=[1])
         + sum(q[get_name(g),y,t] * get_cost(get_variable(get_operation_cost(g)))
             for g in get_components(Generator, system), y in Y, t in T
         ) / length(Y)
-        + sum(ls[y,t] * VOLL for y in Y, t in T) / length(Y)
+        + sum(ls[y,t] * get_VOLL() for y in Y, t in T) / length(Y)
         + sum(k[get_name(g)] * get_fixed(get_operation_cost(g))
             for g in get_components(Generator, system)
         )
@@ -190,8 +193,10 @@ function build_GEP_sub_problem(
         system::System,
         years,
     )
-    m = Model(Ipopt.Optimizer)
-    JuMP.set_optimizer_attribute(m, "print_level", 0)
+    m = Model(get_optimizer(;sub_problem=true, preferred="Ipopt"))
+    # JuMP.set_optimizer_attribute(m, "OutputFlag", 0)
+    # m = Model(Ipopt.Optimizer)
+    # JuMP.set_optimizer_attribute(m, "print_level", 0)
     m.ext[:variables] = Dict{Symbol,Any}()
     m.ext[:constraints] = Dict{Symbol,Any}()
 
@@ -233,7 +238,7 @@ function build_GEP_sub_problem(
         + sum(q[get_name(g),t] * get_cost(get_variable(get_operation_cost(g)))
             for g in get_components(Generator, system), t in T
         )
-        + sum(ls[t] * VOLL for t in T)
+        + sum(ls[t] * get_VOLL() for t in T)
         + sum(k[get_name(g)] * get_fixed(get_operation_cost(g))
             for g in get_components(Generator, system)
         )
@@ -257,3 +262,41 @@ function build_scenario_tree(
     end
     return tree
 end
+
+function get_set_of_time_periods(;all::Bool=false)
+    # Any time in the year 2018
+    all == true && return range(DateTime(2018); length=8760, step=Hour(1))
+    return range(DateTime(2018); length=24, step=Hour(1))
+end
+
+function get_generator_names(system::System)
+    return get_name.(get_components(Generator, system))
+end
+
+
+function get_optimizer(;sub_problem=true, preferred="Gurobi")
+    verbosity = sub_problem ? 0 : 1
+    if preferred == "Gurobi" && haskey(ENV, "GUROBI_HOME")
+        return optimizer_with_attributes(
+            Gurobi.Optimizer, "OutputFlag" => verbosity, 
+            "OptimalityTol" => 1e-4
+        )
+    elseif preferred == "COSMO"
+        return optimizer_with_attributes(
+            COSMO.Optimizer, "verbose" => false, 
+            "eps_abs" => 1e-1, "max_iter" => 10_000
+        )
+    elseif preferred == "Cbc"
+        return optimizer_with_attributes(
+            Cbc.Optimizer, "logLevel" => verbosity
+        )
+    else
+        return optimizer_with_attributes(Ipopt.Optimizer, 
+            "print_level" => verbosity, "tol" => 1e-2
+        )
+    end
+end
+
+get_VOLL() = 10.0
+
+;

@@ -1,5 +1,5 @@
 using Distributed
-const WORKERS = 3
+WORKERS = 2
 diff = (nprocs() == nworkers() ? WORKERS : WORKERS - nworkers())
 println("Adding $diff worker processes.")
 Distributed.addprocs(diff)
@@ -10,11 +10,11 @@ for w in workers()
 end
 
 @everywhere using ProgressiveHedging
-const PH = ProgressiveHedging
+PH = ProgressiveHedging
 @everywhere using Ipopt
 @everywhere using JuMP
+@everywhere using Gurobi
 @everywhere include(joinpath(@__DIR__, "..", "functions", "util.jl"))
-@everywhere include(joinpath(@__DIR__, "..", "functions", "sets.jl"))
 using Logging
 logger = configure_logging(console_level = Logging.Error)
 
@@ -28,4 +28,4 @@ system = build_system()
     system, # This is passed to build_scen_tree
     years; # hopefully also this!
     atol=1e-2, rtol=1e-4, max_iter=500, report=1, # PH solve options
-)
+);

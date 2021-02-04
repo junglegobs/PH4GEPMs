@@ -214,21 +214,17 @@ function build_GEP_sub_problem(
     )[Symbol("Load_$(yidx)")]
 
     # Create variables
-    q = m.ext[:variables][:q] = @variable(m, [g in G, t in T])
-
-    ls = m.ext[:variables][:ls] = @variable(m, [t in T])
-    k = m.ext[:variables][:k] = @variable(m, [g in G])
+    q = m.ext[:variables][:q] = @variable(m, [g in G, t in T], lower_bound=0)
+    ls = m.ext[:variables][:ls] = @variable(m, [t in T], lower_bound=0)
+    k = m.ext[:variables][:k] = @variable(m, [g in G], lower_bound=0)
     dispatch = vcat(q.data[:], ls.data[:])
     investments = k.data[:]
 
-<<<<<<< Updated upstream
-=======
     # Set warm start values for all variables
     # if haskey(models, yidx) && has_values(models[yidx]) 
     #     set_start_value.(all_variables(m), value.(all_variables(models[yidx])))
     # end
 
->>>>>>> Stashed changes
     # Power balance
     power_balance = m.ext[:constraints][:power_balance] = @constraint(m, 
         [t in T],
@@ -257,13 +253,10 @@ function build_GEP_sub_problem(
         PH.stid(2) => dispatch
     )
 
-<<<<<<< Updated upstream
-=======
     # Save model to use warm start values later on
     # haskey(models, yidx) && (models[yidx] = nothing) # Clear memory
     # models[yidx] = m
 
->>>>>>> Stashed changes
     return JuMPSubproblem(m, scenario_id, vdict)
 end
 
@@ -286,10 +279,25 @@ function get_generator_names(system::System)
     return get_name.(get_components(Generator, system))
 end
 
-function get_optimizer(;sub_problem=true)
-    if haskey(ENV, "GUROBI_HOME")
-        return Gurobi.Optimizer
+function get_optimizer(;sub_problem=true, preferred="Gurobi")
+    verbosity = sub_problem ? 0 : 1
+    if preferred == "Gurobi" && haskey(ENV, "GUROBI_HOME")
+        return optimizer_with_attributes(
+            Gurobi.Optimizer, "OutputFlag" => verbosity, 
+            "OptimalityTol" => 1e-4
+        )
+    elseif preferred == "COSMO"
+        return optimizer_with_attributes(
+            COSMO.Optimizer, "verbose" => verbosity, 
+            "eps_abs" => 1e-1, "max_iter" => 10_000
+        )
+    elseif preferred == "Cbc"
+        return optimizer_with_attributes(
+            Cbc.Optimizer, "logLevel" => verbosity
+        )
     else
-        return COSMO.Optimizer
+        return optimizer_with_attributes(Ipopt.Optimizer, 
+            "print_level" => verbosity, "tol" => 1e-2
+        )
     end
 end

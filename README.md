@@ -5,12 +5,12 @@ A simple implementation of progressive hedging as applied to a generation expans
 To try it out, just clone (download) this repository and run one of the scripts:
 ```julia
 shell> git clone https://github.com/junglegobs/PH4GEPMs.git
-shell> cd PH4GEPMs
-pkg> activate .
-julia> include("init.jl")
+shell> cd PH4GEPMs # change directory to this repository
+pkg> activate . # Activate this repository's environment
+julia> include("init.jl") # Initial setup
 julia? include(joinpath(@__DIR__, "scripts", "simplest_PH.jl"))
 ```
-Tip: to get to the shell, type `;` in the Julia REPL. Similarly to get to the package manager, type `]`
+Tip: to get to the shell, type `;` in the Julia REPL. Similarly to get to the package manager, type `]`.
 
 ## Distributed optimisations setup
 To run the scripts in a distributed fashion, you need to do the following:
@@ -18,7 +18,7 @@ To run the scripts in a distributed fashion, you need to do the following:
 julia> include("<full_path_to_PH4GEPMs>/init.jl")
 julia> include(joinpath(ROOT_DIR, "scripts", "distributed_PH.jl"))
 ```
-Note that `distributed_PH.jl` calls the `init.jl` function each time (TODO: make another init script for distributed jobs).
+Note that `distributed_PH.jl` calls the `init.jl` function each time, which might unnecessarily slow things down. (TODO: make another init script for distributed jobs).
 
 ## References
 For a reference to progressive hedging, [see here](https://pdfs.semanticscholar.org/f75f/ed76db11997b66093099f1a933e2f59e7306.pdf). For generation expansion planning models, see e.g. [this paper](https://www.mech.kuleuven.be/en/tme/research/energy-systems-integration-modeling/pdf-publications/wp-esim2020-03).

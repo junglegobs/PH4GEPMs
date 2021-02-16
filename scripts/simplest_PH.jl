@@ -1,8 +1,4 @@
-using PowerSystems
-using ProgressiveHedging
-using JuMP
-using Ipopt
-using Logging
+using PowerSystems, ProgressiveHedging, JuMP, Ipopt, Logging
 logger = configure_logging(console_level = Logging.Error)
 
 opts = Dict(
@@ -18,15 +14,14 @@ system = build_system()
     system, # This is passed to build_scen_tree
     opts; # hopefully also this!
     atol=1e-2, rtol=1e-4, max_iter=500, report=1, # PH solve options
-)
+);
 
 # Compare to extensive solve
 ef_model = PH.solve_extensive(
     build_scenario_tree(length(opts[:years])),
     build_GEP_sub_problem, 
-    ()->Ipopt.Optimizer(),
+    ()->get_optimizer(;sub_problem=false, preferred="Gurobi"),
     system, years,
-    opt_args=(print_level=0,)
 )
 
 # ... and my extensive solve

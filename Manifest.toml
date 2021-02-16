@@ -28,7 +28,7 @@ version = "0.3.3"
 deps = ["LinearAlgebra", "Requires", "SparseArrays"]
 git-tree-sha1 = "91f95e873f0e53d8f5e6603516fa8ec3dc312859"
 uuid = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
-version = "2.14.14"
+version = "2.14.13"
 
 [[Artifacts]]
 deps = ["Pkg"]
@@ -76,21 +76,9 @@ version = "0.4.1"
 
 [[COSMO]]
 deps = ["AMD", "DataStructures", "IterTools", "LinearAlgebra", "MathOptInterface", "Pkg", "Printf", "QDLDL", "Random", "Requires", "SparseArrays", "Statistics", "SuiteSparse", "Test", "UnsafeArrays"]
-git-tree-sha1 = "4864a3574b27e17335650d1d7e99266c5f7147ad"
+git-tree-sha1 = "e87b79b92b6b76ef090a8b4a2b2085f9c5a6bc0a"
 uuid = "1e616198-aa4e-51ec-90a2-23f7fbd31d8d"
-version = "0.7.8"
-
-[[CSDP]]
-deps = ["BinaryProvider", "CSDP_jll", "Glob", "Libdl", "LinearAlgebra", "MathOptInterface", "SparseArrays"]
-git-tree-sha1 = "0ff3b463fd6030a19e61cd0fe461081062200a91"
-uuid = "0a46da34-8e4b-519e-b418-48813639ff34"
-version = "0.7.0"
-
-[[CSDP_jll]]
-deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "OpenBLAS32_jll", "Pkg"]
-git-tree-sha1 = "1dbf80e0791a4b34fe0ae3263bd423d0d68641db"
-uuid = "9ce75daa-2788-5e2c-ba1d-cf8c48367b27"
-version = "6.2.0+10"
+version = "0.7.9"
 
 [[CSV]]
 deps = ["Dates", "Mmap", "Parsers", "PooledArrays", "SentinelArrays", "Tables", "Unicode"]
@@ -411,6 +399,12 @@ git-tree-sha1 = "f32edfff5e9c8741afaada4ff7f1454a988a962a"
 uuid = "27996c0f-39cd-5cc1-a27a-05f136f946b6"
 version = "1.0.4"
 
+[[Gurobi]]
+deps = ["CEnum", "Libdl", "MathOptInterface"]
+git-tree-sha1 = "87c818dc7da7f7927cda470fda06bc2d05881d46"
+uuid = "2e9cd046-0924-5485-92f1-d5272153d98b"
+version = "0.9.7"
+
 [[HDF5]]
 deps = ["Blosc", "Compat", "HDF5_jll", "Libdl", "Mmap", "Random", "Requires"]
 git-tree-sha1 = "947d696a6b6dbc14018a1668c4724fdc6236a3d3"
@@ -505,7 +499,7 @@ version = "1.0.0"
 [[JLLWrappers]]
 git-tree-sha1 = "a431f5f2ca3f4feef3bd7a5e94b8b8d4f2f647a0"
 uuid = "692b3bcd-3c85-4b1f-b108-f13ce0eb3210"
-version = "1.2.0"
+version = "1.1.4"
 
 [[JSON]]
 deps = ["Dates", "Mmap", "Parsers", "Unicode"]
@@ -730,7 +724,7 @@ version = "1.0.10"
 deps = ["LinearAlgebra", "SparseArrays", "Test"]
 git-tree-sha1 = "6b6bb8f550dc38310afd4a0af0786dc3222459e2"
 uuid = "d8a4904e-b15c-11e9-3269-09a3773c0cb0"
-version = "0.2.14"
+version = "0.2.13"
 
 [[NLSolversBase]]
 deps = ["DiffResults", "Distributed", "FiniteDiff", "ForwardDiff"]
@@ -754,12 +748,6 @@ deps = ["CompilerSupportLibraries_jll", "Libdl", "Pkg"]
 git-tree-sha1 = "793b33911239d2651c356c823492b58d6490d36a"
 uuid = "656ef2d0-ae68-5445-9ca0-591084a874a2"
 version = "0.3.9+4"
-
-[[OpenBLAS_jll]]
-deps = ["CompilerSupportLibraries_jll", "Libdl", "Pkg"]
-git-tree-sha1 = "0c922fd9634e358622e333fc58de61f05a048492"
-uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
-version = "0.3.9+5"
 
 [[OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -860,9 +848,7 @@ version = "0.6.9"
 
 [[ProgressiveHedging]]
 deps = ["DataFrames", "Distributed", "Ipopt", "JuMP", "MathOptInterface", "Printf", "TimerOutputs"]
-git-tree-sha1 = "f2243e672333493e74cdc9d16d6d1d18232f2f79"
-repo-rev = "master"
-repo-url = "https://github.com/NREL/ProgressiveHedging.jl.git"
+path = "/home/u0128861/Desktop/PH4GEPMs/dev/ProgressiveHedging"
 uuid = "070f1c60-6b5b-11e9-29fc-595e701b384d"
 version = "0.4.0"
 
@@ -920,21 +906,6 @@ deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "MathOptInterface", "MathPro
 git-tree-sha1 = "efc1cf417dffb455b74a3d48857ae418098fc8a1"
 uuid = "c946c3f1-0d1f-5ce8-9dea-7daa1f7e2d13"
 version = "0.7.1"
-
-[[SCS_GPU_jll]]
-deps = ["Libdl", "OpenBLAS_jll", "Pkg"]
-git-tree-sha1 = "44badbd675d79303fd5b0a7a5380ed7624bd989a"
-uuid = "af6e375f-46ec-5fa0-b791-491b0dfa44a4"
-version = "2.1.2+0"
-
-[[SCS_jll]]
-deps = ["Artifacts", "JLLWrappers", "Libdl", "OpenBLAS_jll", "Pkg"]
-git-tree-sha1 = "6cdaccb5e6a69455f960de1ae445ba1de5db9d0d"
-uuid = "f4f2fc5b-1d94-523c-97ea-2ab488bedf4b"
-version = "2.1.2+1"
-
-[[SHA]]
-uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
 [[SentinelArrays]]
 deps = ["Dates", "Random"]

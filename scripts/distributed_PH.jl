@@ -1,20 +1,14 @@
 # Setup workers
 using Distributed
-const WORKERS = 4
+WORKERS = 2
 diff = (nprocs() == nworkers() ? WORKERS : WORKERS - nworkers())
 println("Adding $diff worker processes.")
 Distributed.addprocs(diff)
 
-# Setup environments for workers
-@everywhere using ProgressiveHedging
-const PH = ProgressiveHedging
-@everywhere using SCS
-@everywhere using Cbc
-@everywhere using JuMP
 @everywhere include(joinpath(@__DIR__, "..", "functions", "util.jl"))
-@everywhere include(joinpath(@__DIR__, "..", "functions", "sets.jl"))
-@everywhere using Logging
-@everywhere logger = configure_logging(console_level = Logging.Error)
+PH = ProgressiveHedging
+using Logging
+logger = configure_logging(console_level = Logging.Error)
 
 # Setup system
 opts = Dict(
@@ -36,15 +30,6 @@ system = build_system()
     build_GEP_sub_problem, # This is the function which builds the model
     1e3, # Penalty term
     system, # This is passed to build_scen_tree
-    opts; # hopefully also this!
-    atol=1e-1, rtol=1e-3, max_iter=500, report=1, # PH solve options
-)
-
-# Solve extensive
-t = @elapsed ef_model = PH.solve_extensive(
-    build_scenario_tree(length(opts[:years])),
-    build_GEP_sub_problem, 
-    ()->Cbc.Optimizer(),
-    system, opts,
-    opt_args=NamedTuple()
-)
+    years; # hopefully also this!
+    atol=1e-2, rtol=1e-4, max_iter=500, report=1, # PH solve options
+);

@@ -9,12 +9,8 @@ for w in workers()
     @spawnat(w, Pkg.activate(joinpath(@__DIR__, "..")))
 end
 
-@everywhere using ProgressiveHedging
-PH = ProgressiveHedging
-@everywhere using Ipopt
-@everywhere using JuMP
-@everywhere using Gurobi
 @everywhere include(joinpath(@__DIR__, "..", "functions", "util.jl"))
+PH = ProgressiveHedging
 using Logging
 logger = configure_logging(console_level = Logging.Error)
 

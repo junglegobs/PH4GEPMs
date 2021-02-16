@@ -193,10 +193,7 @@ function build_GEP_sub_problem(
         system::System,
         years,
     )
-    m = Model(get_optimizer(;sub_problem=true, preferred="Ipopt"))
-    # JuMP.set_optimizer_attribute(m, "OutputFlag", 0)
-    # m = Model(Ipopt.Optimizer)
-    # JuMP.set_optimizer_attribute(m, "print_level", 0)
+    m = Model(get_optimizer(;sub_problem=true, preferred="Gurobi"))
     m.ext[:variables] = Dict{Symbol,Any}()
     m.ext[:constraints] = Dict{Symbol,Any}()
 

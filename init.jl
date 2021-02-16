@@ -10,6 +10,7 @@ Pkg.instantiate()
 Pkg.API.precompile()
 
 # Constants
+using Gurobi
 const GRB_ENV = Gurobi.Env() # This needs to be 
 
 # Include other scripts

@@ -17,7 +17,7 @@ system = build_system()
 ef_model = PH.solve_extensive(
     build_scenario_tree(length(years)),
     build_GEP_sub_problem, 
-    ()->Ipopt.Optimizer(),
+    ()->get_optimizer(;sub_problem=false, preferred="Gurobi"),
     system, years,
 )
 
